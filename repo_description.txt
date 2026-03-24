@@ -1,0 +1,1 @@
+Prompt-based POI recommendation project combining KoAlpaca LLM, KoBERT embeddings, Kakao geocoding, and Folium visualization.
