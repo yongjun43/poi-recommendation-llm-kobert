@@ -1,41 +1,77 @@
-# Prompt-based POI Recommendation with KoAlpaca and KoBERT
+# LLM 기반 프롬프트 기반 POI 추천 알고리즘 개발
 
-한국어 LLM과 BERT 임베딩을 결합하여, 사용자 프롬프트 기반으로 POI(Point of Interest) 추천 및 위치 시각화를 수행하는 프로젝트입니다.
+한국어 LLM과 KoBERT 임베딩을 결합하여, 사용자 프롬프트 기반으로 POI(Point of Interest) 추천 및 위치 시각화를 수행하는 프로젝트입니다.
 
-이 프로젝트는 다음 두 축으로 구성됩니다.
+이 프로젝트는 다음 3개 축으로 구성됩니다.
 
-- **LLM 기반 질의 응답 생성**
-  - `beomi/KoAlpaca-Polyglot-5.8B`
-  - 사용자 질문과 맥락(context)을 입력받아 한국어 자연어 응답 생성
-- **KoBERT 기반 POI 유사도 검색**
-  - `skt/kobert-base-v1`
-  - 관광지명/장소명을 임베딩으로 변환한 뒤 cosine similarity로 유사 POI 탐색
-- **위치 기반 시각화**
-  - Kakao Local API로 주소 → 위경도 변환
-  - Folium으로 마커, 클러스터, 경로 시각화
+1. **LLM 기반 질의 응답 생성**
+   - `beomi/KoAlpaca-Polyglot-5.8B`
+   - 사용자 질문과 맥락을 입력받아 한국어 자연어 응답 생성
+2. **KoBERT 기반 POI 의미 유사도 검색**
+   - `skt/kobert-base-v1`
+   - 관광지명/장소명을 dense embedding으로 변환한 뒤 cosine similarity로 유사 POI 탐색
+3. **위치 기반 시각화**
+   - Kakao Local API로 주소를 위경도로 변환
+   - Folium으로 지도, 클러스터, 경로 시각화
 
-## Overview
+## Project Summary
 
-프로젝트 목표는 사용자의 자연어 프롬프트를 기반으로 장소 정보를 탐색하고, POI 간 유사도 및 위치 정보를 결합해 추천 후보를 제시하는 것입니다.
+- **프로젝트명**: LLM 모델을 활용한 프롬프트 기반 POI 추천 알고리즘 개발
+- **핵심 아이디어**: 텍스트 생성형 한국어 LLM과 의미 기반 POI 검색을 결합해, 설명 생성과 위치 추천을 동시에 수행하는 하이브리드 파이프라인 구현
+- **주요 기능**
+  - 한국어 프롬프트 기반 장소 설명 생성
+  - KoBERT 임베딩 기반 유사 관광지 검색
+  - Kakao API 기반 geocoding
+  - Folium 기반 지도/클러스터/경로 시각화
+- **기술 스택**
+  - LLM: KoAlpaca
+  - Embedding: KoBERT
+  - Geocoding: Kakao Local API
+  - Visualization: Folium
+  - Data / ML: pandas, numpy, scikit-learn, torch, transformers
 
-예를 들어:
-- "동성로에 대해서 설명해줘" → LLM이 장소 설명 생성
-- 특정 관광지명 입력 → KoBERT 임베딩 기반 유사 장소 검색
-- 주소 데이터셋 기반 → 지도 시각화 및 경로 표시
+## Why This Project Matters
 
-즉, 단순 텍스트 생성이 아니라 다음을 아우르는 하이브리드 POI 추천 파이프라인입니다.
+일반적인 챗봇형 응답은 장소를 “설명”하는 데 그치는 경우가 많습니다.
+이 프로젝트는 설명 생성에 그치지 않고,
 
-1. 한국어 프롬프트 이해
-2. 장소명 임베딩 기반 유사도 계산
-3. 주소 좌표화
-4. 지도/클러스터/경로 시각화
+- 의미 기반 유사 POI 검색
+- 주소 → 좌표 변환
+- 지도 시각화
+- 추천 후보의 경로/클러스터 표현
+
+까지 연결하여 **텍스트 이해 + 의미 기반 추천 + 위치 기반 표현**을 하나의 흐름으로 묶었습니다.
+
+## End-to-End Workflow
+
+### 1. Prompt input
+예시:
+
+```text
+### 질문: 동성로에 대해서 설명해줘
+```
+
+### 2. LLM response generation
+`llm_generation.py`가 `KoAlpaca-Polyglot-5.8B` 기반으로 장소 설명을 생성합니다.
+
+### 3. Semantic POI retrieval
+`poi_recommendation.py`가 KoBERT 임베딩을 이용하여 입력 장소와 의미적으로 유사한 POI 후보를 탐색합니다.
+
+### 4. Geocoding
+주소를 Kakao Local API로 변환하여 위경도를 확보합니다.
+
+### 5. Visualization
+확보한 좌표를 기반으로 Folium 지도에서 마커, 클러스터, 경로를 시각화합니다.
 
 ## Main Architecture
 
-### 1. LLM-based prompt generation
-Hugging Face Transformers의 `AutoModelForCausalLM`과 `pipeline('text-generation')`을 사용해 `beomi/KoAlpaca-Polyglot-5.8B` 모델로 한국어 질의 응답을 생성합니다.
+### A. LLM-based Korean QA generation
 
-입력 포맷:
+- 구현 파일: `llm_generation.py`
+- 모델: `beomi/KoAlpaca-Polyglot-5.8B`
+- 사용 라이브러리: `AutoModelForCausalLM`, `AutoTokenizer`, `pipeline('text-generation')`
+- 프롬프트 형식:
+
 ```text
 ### 질문: {question}
 
@@ -44,18 +80,21 @@ Hugging Face Transformers의 `AutoModelForCausalLM`과 `pipeline('text-generatio
 ### 답변:
 ```
 
-생성 파라미터:
-- `max_new_tokens=128`
-- `temperature=0.7`
-- `top_p=0.9`
-- `do_sample=True`
+- 생성 파라미터
+  - `max_new_tokens=128`
+  - `temperature=0.7`
+  - `top_p=0.9`
+  - `do_sample=True`
 
-### 2. KoBERT-based POI embedding
-`KoBERTTokenizer`와 `BertModel`을 사용하여 관광지명/장소명을 dense embedding으로 변환합니다.
+### B. KoBERT-based POI embedding & similarity search
 
-핵심 함수:
-- `word_embed(src, model, tokenizer, max_length=20)`
-- `get_similar_spot(src, k=10)`
+- 구현 파일: `poi_recommendation.py`
+- 모델: `skt/kobert-base-v1`
+- 토크나이저: `KoBERTTokenizer`
+- 핵심 함수
+  - `load_kobert()`
+  - `word_embed(src, model, tokenizer, max_length=20)`
+  - `get_similar_spot(src, model, tokenizer, k=10)`
 
 동작 방식:
 1. 장소명을 토크나이즈
@@ -63,16 +102,14 @@ Hugging Face Transformers의 `AutoModelForCausalLM`과 `pipeline('text-generatio
 3. cosine similarity 계산
 4. 유사도가 높은 POI 후보 정렬
 
-### 3. Geocoding with Kakao API
-주소 문자열을 Kakao Local API로 변환하여 longitude / latitude를 얻습니다.
+### C. Geocoding & map visualization
+
+- Kakao Local API로 주소 → 위경도 변환
+- Folium으로 지도 렌더링
 
 핵심 함수:
 - `kakao_map(address)`
-- `getLongLat(addr)`
-
-### 4. Visualization
-Folium을 사용하여 다음 기능을 제공합니다.
-
+- `get_long_lat(addresses)`
 - `plot_map(dataframe)`
 - `plot_cluster(dataframe, n_cluster=3)`
 - `plot_route(src, dst)`
@@ -86,11 +123,29 @@ poi-recommendation-llm-kobert/
 ├── .gitignore
 ├── repo_description.txt
 ├── portfolio_summary_ko.txt
-└── docs/
-    └── PROJECT_STRUCTURE.md
+├── llm_generation.py
+├── poi_recommendation.py
+├── settings.py
+├── setup.py
+├── kobert_tokenizer/
+│   └── README.md
+├── data/
+│   └── README.md
+├── image/
+│   └── README.md
+├── docs/
+│   ├── PROJECT_STRUCTURE.md
+│   ├── PROJECT_OVERVIEW.md
+│   ├── ARCHITECTURE.md
+│   ├── CODE_WALKTHROUGH.md
+│   ├── RUN_GUIDE.md
+│   ├── LIMITATIONS_AND_FUTURE_WORK.md
+│   └── PORTFOLIO_POINTS.md
+└── references/
+    └── source-materials.md
 ```
 
-## Environment
+## Requirements
 
 ```txt
 boto3<=1.15.18
@@ -108,68 +163,33 @@ mxnet
 requests
 ```
 
-## Docker
-
-### 1. Clone
-```bash
-git clone https://github.com/ceo21ckim/Seoul-ICT.git
-cd Seoul-ICT
-```
-
-### 2. Build
-```bash
-docker build --tag seoul_ict:1.0 .
-```
-
-### 3. Run
-Docker 2.0+:
-```bash
-docker run -itd --runtime=nvidia --name ict -p 8888:8888 -v C:\Users\Name\:/workspace seoul_ict:1.0 /bin/bash
-```
-
-Docker CE 19.03+:
-```bash
-docker run -itd --gpus all --name ict -p 8888:8888 -v C:\Users\Name\:/workspace seoul_ict:1.0 /bin/bash
-```
-
-### 4. Jupyter Notebook
-```bash
-docker exec -it ict bash
-jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root
-```
-
 ## Example
 
-### Prompt
 ```text
 ### 질문: 동성로에 대해서 설명해줘
 ```
 
+기대 동작:
+- LLM이 장소 소개를 생성
+- KoBERT가 의미 유사 POI 후보를 반환
+- 주소/좌표 기반 시각화 가능
+
 ## Strengths
 
-- 한국어 LLM 기반 질의응답 생성 가능
-- KoBERT 임베딩을 활용한 의미 기반 POI 검색
-- Kakao API를 통한 실제 위치 좌표화
-- 지도, 클러스터, 경로까지 이어지는 시각화 제공
-- NLP + Location Intelligence + Visualization 결합 구조
+- 한국어 LLM 기반 질의응답 생성
+- KoBERT 임베딩 기반 의미 검색
+- Kakao API 기반 실제 위치 좌표화
+- Folium 기반 지도/클러스터/경로 시각화
+- NLP + Recommendation + Geospatial Visualization 결합 구조
 
 ## Limitations
 
-현재 원본 코드 기준으로는 아래 보완이 필요합니다.
+현재 구현 기준으로 아래 보완이 필요합니다.
 
-1. **LLM 디바이스 설정 충돌 가능성**
-   - 모델은 CPU로 올리지만 pipeline은 `device=0`으로 지정되어 있음
-
-2. **API Key 하드코딩**
-   - Kakao REST API Key가 코드에 직접 포함되어 있음
-   - 공개 저장소 업로드 전 `.env` 또는 환경변수로 분리 필요
-
-3. **`word_embed()` 호출부 수정 필요**
-   - `get_similar_spot()`에서 `model`, `tokenizer` 인자를 넘기지 않아 현재 상태 그대로는 실행 오류 가능
-
-4. **추천 로직 고도화 필요**
-   - 현재는 텍스트 유사도 중심
-   - 사용자 선호, 거리, 카테고리, 랭킹 등을 함께 반영하는 ranking function으로 확장 가능
+1. 사용자 선호, 거리, 카테고리, 평점이 통합된 ranking function은 아직 없음
+2. API key 관리와 실행 환경 설정을 더 배포 친화적으로 다듬을 필요가 있음
+3. sample data / demo UI / API server가 붙으면 프로젝트 전달력이 더 좋아짐
+4. `kobert_tokenizer` 패키지와 데이터 파일까지 포함한 재현성 문서를 더 보강할 필요가 있음
 
 ## Future Work
 
@@ -177,19 +197,20 @@ jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root
 - 사용자 선호 기반 personalized ranking
 - 거리/카테고리/평점 통합 scoring
 - FastAPI 기반 API 서버화
-- Streamlit or Gradio 기반 데모 UI
+- Streamlit 또는 Gradio 데모 UI
 - GPU inference 최적화
 
-## Resume / Portfolio Description
+## Portfolio Description
 
 ### Korean
-한국어 LLM(KoAlpaca)과 KoBERT 임베딩을 결합하여 프롬프트 기반 POI 추천 알고리즘을 구현했습니다.  
+한국어 LLM(KoAlpaca)과 KoBERT 임베딩을 결합하여 프롬프트 기반 POI 추천 알고리즘을 구현했습니다. 
 장소명 의미 유사도 검색, Kakao API 기반 좌표 변환, Folium 시각화를 통합하여 텍스트 이해부터 위치 기반 추천 결과 표현까지 연결되는 하이브리드 추천 파이프라인을 설계했습니다.
 
 ### English
-Developed a prompt-based POI recommendation pipeline by combining a Korean LLM (KoAlpaca) with KoBERT embeddings.  
+Developed a prompt-based POI recommendation pipeline by combining a Korean LLM (KoAlpaca) with KoBERT embeddings. 
 Built an end-to-end workflow that integrates semantic POI retrieval, Kakao API-based geocoding, and Folium visualization for location-aware recommendation.
 
 ## License
-This project includes components and ideas based on external open-source resources.  
-Please check each upstream repository license before redistribution.
+
+이 프로젝트는 외부 오픈소스 리소스 기반 아이디어와 구성 요소를 포함합니다.
+재배포 전에는 upstream repository의 라이선스를 반드시 확인해야 합니다.

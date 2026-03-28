@@ -20,18 +20,24 @@ poi-recommendation-llm-kobert/
 ├── settings.py
 ├── setup.py
 ├── kobert_tokenizer/
-│   ├── __init__.py
-│   └── tokenizer_kobert.py
+│   └── ...
 ├── data/
 │   └── *.csv
 ├── image/
 │   └── *.html
-└── docs/
-    └── PROJECT_STRUCTURE.md
+├── docs/
+│   ├── PROJECT_OVERVIEW.md
+│   ├── ARCHITECTURE.md
+│   ├── CODE_WALKTHROUGH.md
+│   ├── RUN_GUIDE.md
+│   ├── LIMITATIONS_AND_FUTURE_WORK.md
+│   └── PORTFOLIO_POINTS.md
+└── references/
+    └── source-materials.md
 ```
 
 ## Notes
 
 - Kakao API Key는 코드에 하드코딩하지 말고 환경변수로 분리하는 것이 안전합니다.
-- `get_similar_spot()`는 현재 `word_embed()` 호출 인자가 맞지 않아 수정 후 업로드하는 것이 좋습니다.
-- LLM 추론 코드는 CPU/GPU device 설정을 일관되게 맞춰야 합니다.
+- `kobert_tokenizer` 폴더는 실제 실행을 위해 기존 저장소 구현을 함께 두는 것이 좋습니다.
+- LLM 추론 코드는 CPU/GPU device 설정을 일관되게 맞추는 것이 중요합니다.
